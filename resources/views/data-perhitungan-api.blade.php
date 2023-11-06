@@ -79,6 +79,10 @@
                         <a class="nav-link" href="{{ route('data-user') }}">Rekapan Data User</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" onclick="refreshPage()" href="#">Refresh
+                            Data</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" onclick="performLogout();" href="#">Logout</a>
                     </li>
                 </ul>
@@ -148,6 +152,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.js"></script>
     <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
     <script>
+        function refreshPage() {
+            window.location.reload();
+        }
+
         function performLogout() {
             var logoutForm = document.getElementById('logout-func');
             if (logoutForm) {
