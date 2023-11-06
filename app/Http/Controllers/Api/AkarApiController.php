@@ -17,10 +17,24 @@ class AkarApiController extends Controller
      */
     public function index()
     {
-        $data = AkarKuadrat::all();
-        return DataTables::of($data)
-            ->addIndexColumn()
-            ->make(true);
+        $data = AkarKuadrat::where('metode', 'Api')->get();
+        $sortedData = $data->sortBy('waktu');
+
+        $fastest = $sortedData->first();
+        $slowest = $sortedData->last();
+
+        $fastestAkarKuadrat = $fastest->waktu;
+        $slowestAkarKuadrat = $slowest->waktu;
+
+        // Buat array JSON yang berisi data tercepat dan terlama
+        $jsonData = [
+            'fastest' => $fastestAkarKuadrat,
+            'slowest' => $slowestAkarKuadrat,
+        ];
+
+        // Kirim data JSON ke frontend
+        return response()->json($jsonData);
+
     }
 
     /**

@@ -14,6 +14,7 @@
     <link href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css" rel="stylesheet">
     <link href="https://fonts.cdnfonts.com/css/quicksand" rel="stylesheet">
     <link rel="shortcut icon" href="{{ asset('kalkulator.png') }}" />
+
     <title>Perhitungan Akar Kuadrat</title>
     <style>
         body {
@@ -65,10 +66,11 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{{ route('home') }}">Perhitungan Akar</a>
+                        <a class="nav-link" href="{{ route('home') }}">Perhitungan Akar</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('data-api') }}">Data Perhitungan Api</a>
+                        <a class="nav-link active" aria-current="page" href="{{ route('data-api') }}">Data Perhitungan
+                            Api</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('data-plsql') }}">Data Perhitungan PlSql</a>
@@ -93,36 +95,31 @@
         </div>
         <div class="mid-content bg-white">
             <div class="text-center border border-secondary">
-                <h2 class="p-3">Masukan Bilangan Yang Ingin Dihitung</h2>
-                <form>
-                    <div class="justify-content-center">
-                        <input type="text" name="bilangan" id="bilangan" class="rounded text-center"
-                            value="{{ Auth::user()->nim }}">
-                    </div>
-                    <div class="mt-3">
-                        <button type="button" id="subApi" class="btn btn-success ml-5">Hitung API</button>
-                        <button type="button" id="subPlsql" class="btn btn-success ml-5">Hitung PlSql</button>
-                    </div>
-                    <div id="bilangan-error" class="text-danger pb-5"></div>
-                </form>
+                <h2 class="p-3">Data Perhitungan Akar Kuadrat Dengan Api</h2>
 
-                <div class="w-75 justify-content-center d-flex" style="margin: 0 auto;" id="container">
+                <div class="w-50 justify-content-center d-flex shadow-result" style="margin: 0 auto;" id="container">
                     <!-- Tampilkan Hasil -->
-                    <div id="hasil" class="p-1 fw-bold second-content">
+                    <div id="fast" class="p-1 fw-bold second-content">
                         <!-- Hasil akan ditampilkan di sini -->
                     </div>
                     <!-- Tampilkan Waktu Eksekusi -->
-                    <div id="execution-time" class="p-1 fw-bold second-content">
+                    <div id="slow" class="p-1 fw-bold second-content">
                         <!-- Waktu eksekusi akan ditampilkan di sini -->
                     </div>
                 </div>
 
-                <div id="nim" hidden>
-                    <input type="text" id="nim" value="{{ Auth::user()->nim }}">
+                <div class="mt-4">
+
                 </div>
 
-                <div class="container pb-5">
-                    <h2 class="p-4 border-bottom">Data Hasil Akar Kuadrat</h2>
+                <div class="w-25 justify-content-center d-flex shadow-result" style="margin: 0 auto;" id="container">
+                    <!-- Tampilkan Hasil -->
+                    <div id="selisih" class="p-1 fw-bold second-content">
+                        <!-- Hasil akan ditampilkan di sini -->
+                    </div>
+                </div>
+
+                <div class="container pb-5 mt-5">
                     <table class="table table-sm" id="akarApiTable">
                         <thead>
                             <tr>
@@ -177,9 +174,7 @@
             $('#akarApiTable').DataTable({
                 processing: true,
                 serverside: true,
-                ajax: "{{ url('/api/data-akar') }}",
-                pageLength: 3,
-                lengthChange: false,
+                ajax: "{{ url('/api/data-akar-api') }}",
                 columns: [{
                     data: 'DT_RowIndex',
                     name: 'DT_RowIndex',
@@ -212,86 +207,32 @@
         });
     </script>
     <script>
-        // Mengambil elemen form dan div waktu eksekusi
-        var executionTimeDiv = document.getElementById('execution-time');
-        $(document).ready(function() {
-            var nim = document.querySelector('input[id="nim"]').value;
-            $("#subPlsql").click(function() {
-                var bilanganErrorDiv = document.getElementById('bilangan-error');
-                bilanganErrorDiv.textContent = '';
-                var bilangan = document.querySelector('input[id="bilangan"]').value;
-                axios.post('/api/akar-kuadrat-plsql', {
-                        bilangan: bilangan,
-                        nim: nim
-                    })
-                    .then(function(response) {
-                        // Menghentikan timer
-                        // Menampilkan waktu eksekusi di dalam div waktu eksekusi
-                        const container = document.getElementById('container');
-                        container.classList.add("shadow-result");
-                        executionTimeDiv.innerHTML = 'Waktu : ' + response.data.waktu_eksekusi +
-                            ' sec';
+        function fetchData() {
+            axios.get('/api/akar-kuadrat-api')
+                .then(function(response) {
+                    console.log(response.data);
+                    const fast = document.getElementById('fast');
+                    const slow = document.getElementById('slow');
 
-                        // Menampilkan hasil bilangan terakhir dan hasil kuadratnya
-                        var hasilKuadrat = response.data.hasil_kuadrat;
-                        var hasilElement = document.getElementById('hasil');
-                        hasilElement.innerHTML = 'Hasil : ' + hasilKuadrat;
-                        $('#akarApiTable').DataTable().ajax.reload();
-                    })
-                    .catch(function(error) {
-                        // Menampilkan pesan validasi error jika ada
-                        if (error.response && error.response.status === 422) {
-                            var errors = error.response.data;
-                            if (errors.bilangan) {
-                                var bilanganErrorDiv = document.getElementById('bilangan-error');
-                                bilanganErrorDiv.textContent = errors.bilangan[0];
-                            }
-                        } else {
-                            console.log(error);
-                        }
-                    });
-            });
-        });
+                    // Menampilkan data tercepat dan terlambat
+                    fast.innerHTML = 'Akar Tercepat: ' + response.data.fastest + ' sec';
+                    slow.innerHTML = 'Akar Terlama: ' + response.data.slowest + ' sec';
 
-        $(document).ready(function() {
-            var nim = document.querySelector('input[id="nim"]').value;
-            $("#subApi").click(function() {
-                var bilanganErrorDiv = document.getElementById('bilangan-error');
-                bilanganErrorDiv.textContent = '';
-                var bilangan = document.querySelector('input[name="bilangan"]').value;
-                axios.post('/api/akar-kuadrat-api', {
-                        bilangan: bilangan,
-                        nim: nim
-                    })
-                    .then(function(response) {
-                        // Menghentikan timer
-                        // Menampilkan waktu eksekusi di dalam div waktu eksekusi
-                        const container = document.getElementById('container');
-                        container.classList.add("shadow-result");
-                        executionTimeDiv.innerHTML = 'Waktu : ' + response.data.waktu_eksekusi +
-                            ' detik';
+                    const fastestValue = parseFloat(response.data.fastest);
+                    const slowestValue = parseFloat(response.data.slowest);
+                    const difference = slowestValue - fastestValue;
 
-                        // Menampilkan hasil bilangan terakhir dan hasil kuadratnya
-                        var bilanganTerakhir = response.data.bilangan_terakhir;
-                        var hasilKuadrat = response.data.hasil_kuadrat;
-                        var hasilElement = document.getElementById('hasil');
-                        hasilElement.innerHTML = 'Hasil : ' + hasilKuadrat;
-                        $('#akarApiTable').DataTable().ajax.reload();
-                    })
-                    .catch(function(error) {
-                        // Menampilkan pesan validasi error jika ada
-                        if (error.response && error.response.status === 422) {
-                            var errors = error.response.data;
-                            if (errors.bilangan) {
-                                var bilanganErrorDiv = document.getElementById('bilangan-error');
-                                bilanganErrorDiv.textContent = errors.bilangan[0];
-                            }
-                        } else {
-                            console.log(error);
-                        }
-                    });
-            });
-        });
+                    // Menampilkan selisih
+                    const differenceElement = document.getElementById('selisih');
+                    differenceElement.innerHTML = 'Selisih: ' + difference + ' sec';
+                })
+                .catch(function(error) {
+                    console.log(error);
+                });
+        }
+
+        // Panggil fetchData saat halaman dimuat
+        document.addEventListener("DOMContentLoaded", fetchData);
     </script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>

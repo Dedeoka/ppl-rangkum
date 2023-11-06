@@ -14,7 +14,23 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+return view('auth.login');
+})->middleware('guest');
+
+Route::middleware('auth')->group(function(){
+
+    Route::get('/perhitungan-akar-api', function () {
+        return view('data-perhitungan-api');
+    })->name('data-api');
+
+    Route::get('/perhitungan-akar-plsql', function () {
+        return view('data-perhitungan-plsql');
+    })->name('data-plsql');
+
+    Route::get('/data-user', function () {
+        return view('data-user');
+    })->name('data-user');
+
 });
 
 Auth::routes();
